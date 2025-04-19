@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import connectDb from './config/mongoDbConfig';
+import connectDb from './config/mongoDbConfig.js';
 dotenv.config();
 
 
