@@ -16,6 +16,8 @@ const PORT=process.env.PORT;//For now set to 4000
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
+
+
 //Connection to database
 connectDb();
 

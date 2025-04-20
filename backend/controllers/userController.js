@@ -1,10 +1,17 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.js";
-import axios from 'axios';
-import qs from 'querystring';
-import dotenv from 'dotenv';
+import axios from "axios";
+import qs from "querystring";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
+
+//Function to give the Token in jwt
+const createToken = (id) => {
+  return jwt.sign({ id }, process.env.JSON_SECRET_KEY);
+};
+
 //In user login please send the email and password to the backend.
 const handleUserLogin = async (req, res) => {
   try {
@@ -32,7 +39,20 @@ const handleUserLogin = async (req, res) => {
     // Exclude sensitive fields before sending the response
     const { password: _password, ...userWithoutPassword } = user._doc;
     // Renamed destructured password
-    return res.status(200).json({ success: "true", user: userWithoutPassword });
+
+    const token = createToken(user._id);
+
+    // Set the token as a cookie
+    res.cookie("authToken", token, {
+      httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
+      secure: process.env.NODE_ENV === "production", // Ensures the cookie is sent over HTTPS in production
+      sameSite: "strict", // Prevents CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (7 days)
+    });
+
+    return res
+      .status(200)
+      .json({ success: "true", user: userWithoutPassword, token });
   } catch (error) {
     console.error("Error during user login:", error);
     return res
@@ -44,7 +64,6 @@ const handleUserLogin = async (req, res) => {
 //In user signup please send name and email,password.
 const handleUserSignup = async (req, res) => {
   try {
-    
     const { name, email, password } = req.body;
 
     // Check if the user already exists
@@ -57,7 +76,7 @@ const handleUserSignup = async (req, res) => {
     }
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10); 
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user
     const newUser = new User({
@@ -72,10 +91,21 @@ const handleUserSignup = async (req, res) => {
     // Exclude sensitive fields before sending the response
     const { password: _password, ...userWithoutPassword } = newUser._doc;
 
+    const token = createToken(newUser._id);
+
+    // Set the token as a cookie
+    res.cookie("authToken", token, {
+      httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
+      secure: process.env.NODE_ENV === "production", // Ensures the cookie is sent over HTTPS in production
+      sameSite: "strict", // Prevents CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (7 days)
+    });
+
     return res.status(201).json({
       success: "true",
       message: "User registered successfully",
       user: userWithoutPassword,
+      token,
     });
   } catch (error) {
     console.error("Error during user signup:", error);
@@ -86,69 +116,98 @@ const handleUserSignup = async (req, res) => {
   }
 };
 
-
-const handleUserRedirect=async (req,res)=>{
-  const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-  const options = {
-    redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    access_type: 'offline',
-    response_type: 'code',
-    prompt: 'consent',
-    scope: [
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ].join(' ')
-  };
-
-  const queryString = qs.stringify(options);
-  const finalUrl = `${rootUrl}?${queryString}`;
-
-  return res.redirect(finalUrl);
-}
-
-
-const handleUserCallback=async (req,res)=>{
-  const code=req.query.code;
-  if(!code) return res.status(400).json({success:false,message:"Code not found"})
-    // console.log(code);
+const handleUserRedirect = async (req, res) => {
   try {
-    //Step-1 Exchange the code for Tokens
-    const tokenResponse=await axios.post('https://oauth2.googleapis.com/token',{
-      code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+    const options = {
       redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-      grant_type: 'authorization_code',
-    })
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      access_type: "offline",
+      response_type: "code",
+      prompt: "consent",
+      scope: [
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email",
+      ].join(" "),
+    };
 
-    const {access_token,id_token} = tokenResponse.data;
+    const queryString = qs.stringify(options);
+    const finalUrl = `${rootUrl}?${queryString}`;
 
-    //Using access tokens to get data
+    return res.redirect(finalUrl);
+  } catch (error) {
+    console.log("Error in initial redirect from google" + error);
+    return res.status(401).json({ success: false, message: error.message });
+  }
+};
 
-    const userResponse=await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    })
-    const {id, name, email, picture}=userResponse.data;
-    const userLogin=await User.findOne({googleId:id});
-    if(userLogin){
-      //performing the code for setting the JWT token here
-    }else{
-      const newuser=await User.create({
-        googleId:id,
+const handleUserCallback = async (req, res) => {
+  const code = req.query.code;
+  if (!code)
+    return res.status(400).json({ success: false, message: "Code not found" });
+
+  try {
+    // Step-1: Exchange the code for Tokens
+    const tokenResponse = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      {
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        grant_type: "authorization_code",
+      }
+    );
+
+    const { access_token, id_token } = tokenResponse.data;
+
+    // Step-2: Use access tokens to get user data
+    const userResponse = await axios.get(
+      "https://www.googleapis.com/oauth2/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+
+    const { id, name, email, picture } = userResponse.data;
+    const userLogin = await User.findOne({ googleId: id });
+    let token;
+
+    if (userLogin) {
+      // Generate JWT token for existing user
+      token = createToken(userLogin._id);
+    } else {
+      // Create a new user and generate JWT token
+      const newUser = await User.create({
+        googleId: id,
         name,
         email,
-        profileImage:picture,
-      })
+        profileImage: picture,
+      });
+      token = createToken(newUser._id);
     }
-    return res.json({});//same goes here we need to insert the redirect url to go back to our home page of the website after completing the google authentication.
 
+    // Set the token as a cookie
+    res.cookie("authToken", token, {
+      httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
+      secure: process.env.NODE_ENV === "production", // Ensures the cookie is sent over HTTPS in production
+      sameSite: "strict", // Prevents CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expiration time (7 days)
+    });
+
+    // Send a success response
+    return res.json({ success: true, message: "Login successful", token });
   } catch (error) {
-    console.log("Error occured in google OAuth "+error);
-    return res.json({success:false,message:error.message}).redirect();//we still need to enter the frontend url here;
+    console.log("Error occurred in Google OAuth: " + error);
+    return res.status(500).json({ success: false, message: error.message });
   }
-}
+};
 
-export { handleUserLogin, handleUserSignup, handleUserRedirect, handleUserCallback };
+export {
+  handleUserLogin,
+  handleUserSignup,
+  handleUserRedirect,
+  handleUserCallback,
+};
