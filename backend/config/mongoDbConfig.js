@@ -8,5 +8,6 @@ const connectDb=async ()=>{
 
     await mongoose.connect(`${process.env.MONGODB_URL}/GoogleClassroom`);
 }
+// mongoose.set('debug', true);
 
 export default connectDb;
