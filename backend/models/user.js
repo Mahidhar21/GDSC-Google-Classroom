@@ -7,8 +7,8 @@ const userSchema=new mongoose.Schema({
     email:{type:String,required:true},
     password:{type:String},
     profileImage:{type:String,default:'/new',required:true},//setup for the default clodinary url is to be done.
-    // role: { type: String, enum: ['teacher', 'student'], default: 'student' }
-})
+    enrolledClassrooms:{type:Array},
+},{minimize:false});
 
 const User=mongoose.models.User || mongoose.model('User',userSchema);
 export default User;

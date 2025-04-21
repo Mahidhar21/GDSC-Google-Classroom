@@ -4,6 +4,7 @@ import connectDb from './config/mongoDbConfig.js';
 import userRouter from './routes/userRouter.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import classroomRouter from './routes/classroomRouter.js';
 dotenv.config();
 
 
@@ -28,7 +29,7 @@ app.get('/',(req,res)=>{
 })
 
 app.use('/api/user',userRouter);
-
+app.use('/api/classroom',classroomRouter);
 
 //Main server connection
 app.listen(PORT,()=>{
