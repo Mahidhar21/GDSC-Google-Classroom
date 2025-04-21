@@ -43,13 +43,11 @@ const handleGetAllClassrooms = async (req, res) => {
       !student.enrolledClassrooms ||
       student.enrolledClassrooms.length === 0
     ) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "No classrooms found",
-          classrooms: [],
-        });
+      return res.status(200).json({
+        success: true,
+        message: "No classrooms found",
+        classrooms: [],
+      });
     }
 
     // Fetch all classrooms the student is enrolled in
@@ -221,12 +219,73 @@ const handleJoinClassroom = async (req, res) => {
 };
 
 const handleGetClassroom = async (req, res) => {
-  const classrommId = req.params.id;
+  try {
+    // Get the token from cookies
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Unauthorized access: Please log in",
+        });
+    }
+
+    // Decode the token to verify the user
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JSON_SECRET_KEY);
+      userId = decoded.id; // Assuming the token contains the user ID directly
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: Invalid token" });
+    }
+
+    // Get the classroom ID from the request parameters//send the shortId to the backend API call.
+    const classroomId = req.params.id;
+    if (!classroomId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Classroom ID is required" });
+    }
+
+    // Find the classroom by its shortId
+    const classroom = await Classroom.findOne({ shortId: classroomId });
+    if (!classroom) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Classroom not found" });
+    }
+
+    // Check if the user is part of the classroom (either as a teacher or student)
+    const isTeacher = classroom.teachers.includes(userId);
+    const isStudent = classroom.enrolledStudents.includes(userId);
+    if (!isTeacher && !isStudent) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Access denied: You are not part of this classroom",
+        });
+    }
+
+    // Send a success response with the classroom details
+    return res.status(200).json({
+      success: true,
+      message: "Classroom fetched successfully",
+      classroom,
+    });
+  } catch (error) {
+    console.error("Error fetching classroom:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching the classroom",
+    });
+  }
 };
 
-const handleGetClasswork = async (req, res) => {};
 
-const handleGetClassroomPeople = async (req, res) => {};
 
 export {
   handleCreateClassroom,

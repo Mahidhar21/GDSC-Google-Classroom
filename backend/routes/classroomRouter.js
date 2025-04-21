@@ -18,13 +18,7 @@ classroomRouter.post('/join',handleJoinClassroom);
 
 classroomRouter.get('/c/:id',handleGetClassroom);
 
-//view classroom work page.
 
-classroomRouter.get('/w/:id',handleGetClasswork);
-
-//view classroom people.
-
-classroomRouter.get('/p/:id',handleGetClassroomPeople);
 
 
 export default classroomRouter;
