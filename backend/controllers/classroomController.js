@@ -9,6 +9,80 @@ function generateNanoId() {
   return id;
 }
 
+const handleGetAllClassrooms = async (req, res) => {
+  try {
+    // Get the token from cookies
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Login to view classrooms" });
+    }
+
+    // Decode the token to get the student ID
+    let studentId;
+    try {
+      const decoded = jwt.verify(token, process.env.JSON_SECRET_KEY);
+      studentId = decoded.id; // Assuming the token contains the user ID directly
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: Invalid token" });
+    }
+
+    // Find the student by ID
+    const student = await User.findOne({ _id: studentId });
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    // Check if the student is enrolled in any classrooms
+    if (
+      !student.enrolledClassrooms ||
+      student.enrolledClassrooms.length === 0
+    ) {
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "No classrooms found",
+          classrooms: [],
+        });
+    }
+
+    // Fetch all classrooms the student is enrolled in
+    const classrooms = [];
+    for (const classroomId of student.enrolledClassrooms) {
+      try {
+        const classroom = await Classroom.findOne({ _id: classroomId });
+        if (classroom) {
+          classrooms.push(classroom);
+        }
+      } catch (error) {
+        console.error(
+          `Error fetching classroom with ID ${classroomId}:`,
+          error
+        );
+      }
+    }
+
+    // Send the response with all fetched classrooms
+    return res.status(200).json({
+      success: true,
+      message: "All classrooms fetched successfully",
+      classrooms,
+    });
+  } catch (error) {
+    console.error("Error in fetching all classroom data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching classrooms",
+    });
+  }
+};
+
 const handleCreateClassroom = async (req, res) => {
   try {
     // Generate a unique shortId for the classroom
@@ -105,12 +179,10 @@ const handleJoinClassroom = async (req, res) => {
 
     // Check if the student is already enrolled
     if (classroom.enrolledStudents.includes(studentId)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "You are already enrolled in this classroom",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "You are already enrolled in this classroom",
+      });
     }
 
     // Add the student to the classroom's enrolledStudents array
@@ -148,7 +220,9 @@ const handleJoinClassroom = async (req, res) => {
   }
 };
 
-const handleGetClassroom = async (req, res) => {};
+const handleGetClassroom = async (req, res) => {
+  const classrommId = req.params.id;
+};
 
 const handleGetClasswork = async (req, res) => {};
 
@@ -160,4 +234,5 @@ export {
   handleJoinClassroom,
   handleGetClasswork,
   handleGetClassroomPeople,
+  handleGetAllClassrooms,
 };
