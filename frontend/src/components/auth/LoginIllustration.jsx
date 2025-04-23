@@ -2,7 +2,7 @@ import React from "react";
 
 const LoginIllustration = () => {
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-190 w-full">
       <div className="absolute inset-0 bg-gradient-to-tr from-primary-600 to-secondary-500 opacity-90"></div>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <div className="max-w-lg px-8 text-center">
