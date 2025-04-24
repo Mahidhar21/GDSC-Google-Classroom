@@ -7,8 +7,6 @@ const classroomRouter=new express.Router();
 
 classroomRouter.get('/',handleGetAllClassrooms);
 
-
-
 //Routes to create,join Classroom.
 
 classroomRouter.post('/create',handleCreateClassroom);
