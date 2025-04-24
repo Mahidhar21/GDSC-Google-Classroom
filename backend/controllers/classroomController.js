@@ -291,7 +291,5 @@ export {
   handleCreateClassroom,
   handleGetClassroom,
   handleJoinClassroom,
-  handleGetClasswork,
-  handleGetClassroomPeople,
   handleGetAllClassrooms,
 };

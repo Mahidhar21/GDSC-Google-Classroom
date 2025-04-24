@@ -1,5 +1,5 @@
 import express from 'express';
-import {handleGetAllClassrooms,handleCreateClassroom, handleGetClassroom,handleJoinClassroom,handleGetClasswork,handleGetClassroomPeople} from '../controllers/classroomController.js';
+import {handleGetAllClassrooms,handleCreateClassroom, handleGetClassroom,handleJoinClassroom} from '../controllers/classroomController.js';
 
 const classroomRouter=new express.Router();
 
