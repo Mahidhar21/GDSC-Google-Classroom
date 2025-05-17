@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 const fileSchema = new mongoose.Schema({
   filename: { type: String, required: true },
+  fileData: { type: Buffer, required: true },
+  contentType: { type: String, required: true },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Classroom",
