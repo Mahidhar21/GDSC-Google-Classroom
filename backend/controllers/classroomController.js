@@ -282,14 +282,17 @@ const handleGetClassroom = async (req, res) => {
   }
 };
 
-const handleAnnouncement = async (req, res) => {
+const handleCreateAnnouncement = async (req, res) => {
   try {
     // Get the token from cookies
     const token = req.cookies.authToken;
     if (!token) {
       return res
         .status(401)
-        .json({ success: false, message: "Unauthorized access: Please log in" });
+        .json({
+          success: false,
+          message: "Unauthorized access: Please log in",
+        });
     }
 
     // Decode the token to verify the user
@@ -322,12 +325,10 @@ const handleAnnouncement = async (req, res) => {
     // Check if the user is a teacher in the classroom
     const isTeacher = classroom.teachers.includes(userId);
     if (!isTeacher) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied: Only teachers can create announcements",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: Only teachers can create announcements",
+      });
     }
 
     // Validate the incoming data
@@ -365,10 +366,78 @@ const handleAnnouncement = async (req, res) => {
   }
 };
 
+const handleGetAllAnnouncements = async (req, res) => {
+  try {
+    // Get the token from cookies
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Unauthorized access: Please log in",
+        });
+    }
+
+    // Decode the token to verify the user
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JSON_SECRET_KEY);
+      userId = decoded.id; // Assuming the token contains the user ID directly
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: Invalid token" });
+    }
+
+    // Get the classroom ID from the request parameters
+    const classroomId = req.params.id;
+    if (!classroomId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Classroom ID is required" });
+    }
+
+    // Find the classroom by its shortId
+    const classroom = await Classroom.findOne({
+      shortId: classroomId,
+    }).populate("announcements");
+    if (!classroom) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Classroom not found" });
+    }
+
+    // Check if the user is part of the classroom (either as a teacher or student)
+    const isTeacher = classroom.teachers.includes(userId);
+    const isStudent = classroom.enrolledStudents.includes(userId);
+    if (!isTeacher && !isStudent) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You are not part of this classroom",
+      });
+    }
+
+    // Send a success response with all announcements
+    return res.status(200).json({
+      success: true,
+      message: "Announcements fetched successfully",
+      announcements: classroom.announcements,
+    });
+  } catch (error) {
+    console.error("Error fetching announcements:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching announcements",
+    });
+  }
+};
+
 export {
   handleCreateClassroom,
   handleGetClassroom,
   handleJoinClassroom,
   handleGetAllClassrooms,
-  handleAnnouncement,
+  handleCreateAnnouncement,
+  handleGetAllAnnouncements,
 };
