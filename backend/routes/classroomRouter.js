@@ -1,5 +1,5 @@
 import express from 'express';
-import {handleGetAllClassrooms,handleCreateClassroom, handleGetClassroom,handleJoinClassroom} from '../controllers/classroomController.js';
+import {handleGetAllClassrooms,handleCreateClassroom, handleGetClassroom,handleJoinClassroom, handleAnnouncement} from '../controllers/classroomController.js';
 
 const classroomRouter=new express.Router();
 
@@ -16,6 +16,8 @@ classroomRouter.post('/join',handleJoinClassroom);
 
 classroomRouter.get('/c/:id',handleGetClassroom);
 
+//Handling the making of announcements in the classrooms (individually)
+classroomRouter.post('/c/stream/:id',handleAnnouncement);
 
 
 

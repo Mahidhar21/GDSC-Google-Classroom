@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 import Classroom from "../models/classroom.js";
 import User from "../models/user.js";
+import Announcement from "../models/announcement.js";
 
 function generateNanoId() {
   const id = nanoid(7);
@@ -223,12 +224,10 @@ const handleGetClassroom = async (req, res) => {
     // Get the token from cookies
     const token = req.cookies.authToken;
     if (!token) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Unauthorized access: Please log in",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access: Please log in",
+      });
     }
 
     // Decode the token to verify the user
@@ -262,12 +261,10 @@ const handleGetClassroom = async (req, res) => {
     const isTeacher = classroom.teachers.includes(userId);
     const isStudent = classroom.enrolledStudents.includes(userId);
     if (!isTeacher && !isStudent) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied: You are not part of this classroom",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You are not part of this classroom",
+      });
     }
 
     // Send a success response with the classroom details
@@ -285,11 +282,93 @@ const handleGetClassroom = async (req, res) => {
   }
 };
 
+const handleAnnouncement = async (req, res) => {
+  try {
+    // Get the token from cookies
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized access: Please log in" });
+    }
 
+    // Decode the token to verify the user
+    let userId;
+    try {
+      const decoded = jwt.verify(token, process.env.JSON_SECRET_KEY);
+      userId = decoded.id; // Assuming the token contains the user ID directly
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: Invalid token" });
+    }
+
+    // Get the classroom ID from the request parameters
+    const classroomId = req.params.id;
+    if (!classroomId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Classroom ID is required" });
+    }
+
+    // Find the classroom by its shortId
+    const classroom = await Classroom.findOne({ shortId: classroomId });
+    if (!classroom) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Classroom not found" });
+    }
+
+    // Check if the user is a teacher in the classroom
+    const isTeacher = classroom.teachers.includes(userId);
+    if (!isTeacher) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Access denied: Only teachers can create announcements",
+        });
+    }
+
+    // Validate the incoming data
+    const { title, content } = req.body;
+    if (!title || !content) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Title and content are required" });
+    }
+
+    // Create and save the announcement to the database
+    const announcement = await Announcement.create({
+      title,
+      content,
+      createdBy: userId,
+      classroomId: classroom._id, // Associate the announcement with the classroom
+    });
+
+    // Push the announcement ID to the classroom's announcements array
+    classroom.announcements.push(announcement._id);
+    await classroom.save();
+
+    // Send a success response
+    return res.status(201).json({
+      success: true,
+      message: "Announcement created successfully",
+      announcement,
+    });
+  } catch (error) {
+    console.error("Error creating announcement:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while creating the announcement",
+    });
+  }
+};
 
 export {
   handleCreateClassroom,
   handleGetClassroom,
   handleJoinClassroom,
   handleGetAllClassrooms,
+  handleAnnouncement,
 };

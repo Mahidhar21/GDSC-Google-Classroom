@@ -8,6 +8,7 @@ const classroomSchema=new mongoose.Schema({
     enrolledStudents:{type:Array},
     shortId:{type:String,required:true},
     teachers:{type:Array,required:true},
+    announcements:{type:Array},
 },{minimize:false,timestamps:true});
 
 const Classroom=mongoose.models.Classroom||mongoose.model('Classroom',classroomSchema);
