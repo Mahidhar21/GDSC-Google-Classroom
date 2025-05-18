@@ -50,7 +50,7 @@ fileRouter.get("/getFile/:fileID", async (req, res) => {
   }
 });
 
-fileRouter.post("/upload/local", upload.single("file"), async (req, res) => {
+fileRouter.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const { classId, createdBy } = req.body;
     const file = new File({
@@ -69,10 +69,6 @@ fileRouter.post("/upload/local", upload.single("file"), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-
-fileRouter.post("/upload/gdrive", async (req, res) => {
-  //to upload files
 });
 
 export default fileRouter;
