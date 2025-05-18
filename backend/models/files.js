@@ -13,6 +13,7 @@ const fileSchema = new mongoose.Schema({
     ref: "User",
   },
   uploadTime: { type: Date, default: Date.now },
+  streamId: { type: String, required: true, default: "None" },
 });
 
 const Files = mongoose.models.Files || mongoose.model("Files", fileSchema);

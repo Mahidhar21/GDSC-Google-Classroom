@@ -5,20 +5,22 @@ import File from "../models/files.js";
 const fileRouter = new express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-fileRouter.get("/allFiles/:classID", async (req, res) => {
+fileRouter.get("/allFiles/:streamID", async (req, res) => {
   try {
-    const classId = req.params.classID;
+    const streamId = req.params.streamID;
 
-    if (!classId) {
-      return res.status(400).json({ message: "classId parameter is required" });
+    if (!streamId) {
+      return res
+        .status(400)
+        .json({ message: "streamId parameter is required" });
     }
 
-    const files = await File.find({ classId });
+    const files = await File.find({ streamId });
 
     if (!files || files.length === 0) {
       return res
         .status(404)
-        .json({ message: "No files found for this classId" });
+        .json({ message: "No files found for this streamId" });
     }
 
     // Sending an array of file info for frontend to pick and download individually
