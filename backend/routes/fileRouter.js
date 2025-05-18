@@ -42,7 +42,7 @@ fileRouter.get("/getFile/:fileID", async (req, res) => {
     const file = await File.findOne({ _id: fileId });
     res.set("Content-Type", file.contentType);
     res.set("Content-Disposition", `attachment; filename="${file.filename}"`);
-    res.send(file.fileData); // fileData must be a Buffer
+    res.send(file.fileData);
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
