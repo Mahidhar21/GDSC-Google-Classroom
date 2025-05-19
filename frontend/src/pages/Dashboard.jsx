@@ -1,12 +1,25 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../components/contexts/AuthContext";
-import { LogOut, Plus, Settings, Menu, X, BookOpen, Bell, Home, Calendar, CheckSquare } from "lucide-react";
+import {
+  LogOut,
+  Plus,
+  Settings,
+  Menu,
+  X,
+  BookOpen,
+  Bell,
+  Home,
+  Calendar,
+  CheckSquare,
+} from "lucide-react";
 import Button from "../components/ui/Button";
-import JoinClassModal from "../components/modals/JoinClass";
 import CreateClassModal from "../components/modals/CreateClass";
+import JoinClassModal from "../components/modals/JoinClass";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
@@ -40,17 +53,14 @@ const Dashboard = () => {
 
   const handleCreateClass = (name, section, subject, room) => {
     console.log("Creating class:", name);
-    // Implement class creation logic here
   };
 
   const handleJoinClass = (classCode) => {
     console.log("Joining class with code:", classCode);
-    // Implement class joining logic here
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -69,7 +79,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <a
                 href="#"
@@ -114,7 +123,7 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-500">{user?.email}</p>
                   </div>
                   <button
-                    onClick={() => {}}
+                    onClick={() => navigate("/settings")}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                   >
                     <Settings size={16} />
@@ -134,7 +143,6 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-b">
           <div className="px-4 py-3">
@@ -166,7 +174,6 @@ const Dashboard = () => {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
@@ -192,12 +199,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Classes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mockClasses.map((classItem) => (
             <div
               key={classItem.id}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
+              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+              onClick={() => navigate(`/class/${classItem.id}`)}
             >
               <div className={`h-24 ${classItem.color} relative`}>
                 <h3 className="absolute bottom-4 left-4 text-lg font-semibold text-gray-900">
@@ -207,10 +214,22 @@ const Dashboard = () => {
               <div className="p-4">
                 <p className="text-sm text-gray-600">{classItem.teacher}</p>
                 <div className="mt-4 flex justify-between items-center">
-                  <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                  <button
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/class/${classItem.id}`);
+                    }}
+                  >
                     View class
                   </button>
-                  <button className="text-gray-400 hover:text-gray-500">
+                  <button
+                    className="text-gray-400 hover:text-gray-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/class/${classItem.id}/settings`);
+                    }}
+                  >
                     <Settings size={16} />
                   </button>
                 </div>
@@ -220,7 +239,6 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* Modals */}
       <CreateClassModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
