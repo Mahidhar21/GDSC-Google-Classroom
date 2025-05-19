@@ -1,84 +1,32 @@
-import React, { forwardRef } from "react";
+import { forwardRef } from "react";
 
 const Input = forwardRef(
-  (
-    {
-      className = "",
-      label,
-      error,
-      helperText,
-      leftIcon,
-      rightIcon,
-      fullWidth = true,
-      id,
-      ...props
-    },
-    ref
-  ) => {
-    const inputId = id || `input-${Math.random().toString(36).substring(2, 9)}`;
-
+  ({ className, icon, endIcon, error, ...props }, ref) => {
     return (
-      <div className={`${fullWidth ? "w-full" : ""} mb-4`}>
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {label}
-          </label>
+      <div className="relative w-full">
+        {icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            {icon}
+          </div>
         )}
 
-        <div className="relative">
-          {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-              {leftIcon}
-            </div>
-          )}
+        <input
+          className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 shadow-input ${
+            icon ? "pl-10" : ""
+          } ${endIcon ? "pr-10" : ""} ${
+            error ? "border-error-500 focus:ring-error-500" : ""
+          } ${className}`}
+          ref={ref}
+          {...props}
+        />
 
-          <input
-            ref={ref}
-            id={inputId}
-            className={`
-            w-full rounded-lg border ${
-              error
-                ? "border-error-500 focus:ring-error-500"
-                : "border-gray-300 focus:ring-primary-500"
-            } 
-            shadow-input focus:border-transparent focus:outline-none focus:ring-2 transition duration-200
-            ${leftIcon ? "pl-10" : "pl-4"} 
-            ${rightIcon ? "pr-10" : "pr-4"} 
-            py-3
-            ${className}
-          `}
-            aria-invalid={error ? "true" : "false"}
-            aria-describedby={
-              error
-                ? `${inputId}-error`
-                : helperText
-                ? `${inputId}-helper`
-                : undefined
-            }
-            {...props}
-          />
-
-          {rightIcon && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
-              {rightIcon}
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <p className="mt-1 text-sm text-error-600" id={`${inputId}-error`}>
-            {error}
-          </p>
+        {endIcon && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            {endIcon}
+          </div>
         )}
 
-        {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500" id={`${inputId}-helper`}>
-            {helperText}
-          </p>
-        )}
+        {error && <p className="mt-1 text-sm text-error-600">{error}</p>}
       </div>
     );
   }

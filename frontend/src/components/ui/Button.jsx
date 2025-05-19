@@ -1,87 +1,59 @@
-import React from "react";
+import { Loader2 } from "lucide-react";
 
 const Button = ({
-  children,
-  onClick = () => {},
-  className = "",
   variant = "primary",
   size = "md",
-  isLoading = false,
   fullWidth = false,
-  leftIcon,
-  rightIcon,
+  loading = false,
+  icon,
+  iconPosition = "left",
+  children,
+  className,
   disabled,
-  type = "button",
   ...props
 }) => {
-  const baseStyles =
-    "inline-flex items-center justify-center font-medium transition-colors duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2";
-
-  const variants = {
+  const variantClasses = {
     primary:
-      "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 focus:ring-primary-500",
+      "bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500",
     secondary:
-      "bg-secondary-600 text-white hover:bg-secondary-700 active:bg-secondary-800 focus:ring-secondary-500",
-    accent:
-      "bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700 focus:ring-accent-400",
+      "bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 focus:ring-gray-500",
+    success:
+      "bg-success-600 hover:bg-success-700 text-white focus:ring-success-500",
+    danger: "bg-error-600 hover:bg-error-700 text-white focus:ring-error-500",
     outline:
-      "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 focus:ring-gray-500",
-    ghost:
-      "bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:ring-gray-500",
+      "bg-transparent border border-primary-600 text-primary-600 hover:bg-primary-50 focus:ring-primary-500",
+    ghost: "bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-500",
   };
 
-  const sizes = {
-    sm: "text-sm px-3 py-2",
-    md: "text-base px-5 py-2.5",
-    lg: "text-lg px-6 py-3",
+  const sizeClasses = {
+    sm: "px-3 py-2 text-sm",
+    md: "px-4 py-2.5",
+    lg: "px-5 py-3 text-lg",
   };
 
-  const disabledStyles =
-    disabled || isLoading ? "opacity-60 cursor-not-allowed" : "";
-
-  const widthStyles = fullWidth ? "w-full" : "";
+  const isDisabled = disabled || loading;
 
   return (
     <button
-      onClick={onClick}
-      type={type}
-      className={`
-        ${baseStyles}
-        ${variants[variant]}
-        ${sizes[size]}
-        ${disabledStyles}
-        ${widthStyles}
-        ${className}
-      `}
-      disabled={disabled || isLoading}
+      className={`rounded-lg font-medium inline-flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+        variantClasses[variant]
+      } ${sizeClasses[size]} ${fullWidth ? "w-full" : ""} ${
+        isDisabled ? "opacity-70 cursor-not-allowed pointer-events-none" : ""
+      } ${className}`}
+      disabled={isDisabled}
       {...props}
     >
-      {isLoading && (
-        <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
+      {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+
+      {!loading && icon && iconPosition === "left" && (
+        <span className="mr-2">{icon}</span>
       )}
 
-      {!isLoading && leftIcon && <span className="mr-2">{leftIcon}</span>}
       {children}
-      {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
+
+      {!loading && icon && iconPosition === "right" && (
+        <span className="ml-2">{icon}</span>
+      )}
     </button>
   );
 };
