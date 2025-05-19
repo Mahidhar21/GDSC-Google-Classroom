@@ -4,7 +4,6 @@ import { BookOpen } from 'lucide-react';
 const AuthLayout = () => {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left side - Branding */}
       <div className="hidden md:flex md:w-1/2 bg-primary-600 text-white p-8 flex-col justify-between animate-fade-in">
         <div>
           <div className="flex items-center gap-2 mb-10">
