@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { useAuth } from "../components/contexts/AuthContext";
-import { LogOut, Plus, Settings, Menu, X, BookOpen, Bell } from "lucide-react";
+import { LogOut, Plus, Settings, Menu, X, BookOpen, Bell, Home, Calendar, CheckSquare } from "lucide-react";
 import Button from "../components/ui/Button";
+import JoinClassModal from "../components/modals/JoinClass";
+import CreateClassModal from "../components/modals/CreateClass";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
   const mockClasses = [
     {
@@ -34,8 +38,19 @@ const Dashboard = () => {
     },
   ];
 
+  const handleCreateClass = (name, section, subject, room) => {
+    console.log("Creating class:", name);
+    // Implement class creation logic here
+  };
+
+  const handleJoinClass = (classCode) => {
+    console.log("Joining class with code:", classCode);
+    // Implement class joining logic here
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -53,6 +68,31 @@ const Dashboard = () => {
                 </h1>
               </div>
             </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              <a
+                href="#"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <Home size={20} />
+                <span>Home</span>
+              </a>
+              <a
+                href="#"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <Calendar size={20} />
+                <span>Calendar</span>
+              </a>
+              <a
+                href="#"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              >
+                <CheckSquare size={20} />
+                <span>To-do</span>
+              </a>
+            </nav>
 
             <div className="flex items-center gap-4">
               <button className="p-2 rounded-full hover:bg-gray-100">
@@ -94,26 +134,30 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-b">
           <div className="px-4 py-3">
             <nav className="space-y-1">
               <a
                 href="#"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
               >
+                <Home size={20} />
                 Home
               </a>
               <a
                 href="#"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
               >
+                <Calendar size={20} />
                 Calendar
               </a>
               <a
                 href="#"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100"
               >
+                <CheckSquare size={20} />
                 To-do
               </a>
             </nav>
@@ -122,6 +166,7 @@ const Dashboard = () => {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
@@ -129,15 +174,25 @@ const Dashboard = () => {
             </h2>
             <p className="text-gray-600 mt-1">Here are your classes</p>
           </div>
-          <Button
-            variant="primary"
-            icon={<Plus size={18} />}
-            onClick={() => {}}
-          >
-            Join class
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              icon={<Plus size={18} />}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Create class
+            </Button>
+            <Button
+              variant="primary"
+              icon={<Plus size={18} />}
+              onClick={() => setIsJoinModalOpen(true)}
+            >
+              Join class
+            </Button>
+          </div>
         </div>
 
+        {/* Classes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mockClasses.map((classItem) => (
             <div
@@ -162,20 +217,20 @@ const Dashboard = () => {
               </div>
             </div>
           ))}
-
-          <button className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border-2 border-dashed border-gray-300 flex items-center justify-center h-[200px] hover:border-primary-500 group">
-            <div className="text-center">
-              <Plus
-                size={24}
-                className="mx-auto text-gray-400 group-hover:text-primary-500"
-              />
-              <p className="mt-2 text-sm font-medium text-gray-600 group-hover:text-primary-600">
-                Create a new class
-              </p>
-            </div>
-          </button>
         </div>
       </main>
+
+      {/* Modals */}
+      <CreateClassModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateClass}
+      />
+      <JoinClassModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+        onSubmit={handleJoinClass}
+      />
     </div>
   );
 };
